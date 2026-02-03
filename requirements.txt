@@ -16,5 +16,6 @@ imbalanced-learn==0.10.1
 accelerate==0.20.1
 wandb==0.15.5
 setuptools>=65.5.0
+wheel
 werkzeug==2.0.3
 protobuf==3.19.6
