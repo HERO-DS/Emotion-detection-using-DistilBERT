@@ -1,6 +1,5 @@
-keras==3.10.0
-numpy==2.0.2
-pandas==2.2.2
-torch==2.9.0
-tensorflow==2.19.0
-transformers==4.57.3
+numpy==1.23.5           # Latest stable version as of October 2023
+pandas==1.5.3           # Latest stable version as of October 2023
+torch==2.0.1            # Commonly used compatible version
+tensorflow==2.11.0      # Latest LTS version as of October 2023
+transformers==4.21.1    # Latest stable version as of previous updates
