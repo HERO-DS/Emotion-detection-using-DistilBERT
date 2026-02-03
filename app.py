@@ -85,7 +85,7 @@ def process_doc_for_lemmas_and_masking(doc):
 # --- 4. Label Mapping (Must be identical to training) ---
 emotion_label_mapping_inverse = {
     0: 'anger', 1: 'fear', 2: 'joy',
-    3: 'love', 4: 'sad', 5: 'suprise' # Corrected 'surprise' to 'suprise' as per notebook
+    3: 'love', 4: 'sad', 5: 'surprise' # Corrected 'surprise' to 'suprise' as per notebook
 }
 
 @app.route('/')
@@ -132,4 +132,5 @@ def predict():
         return render_template('index.html', error=f"Prediction error: {str(e)}"), 500
 
 if __name__ == "__main__":
+
     app.run(debug=True, host='0.0.0.0', port=5000)
