@@ -13,3 +13,4 @@ transformers==4.28.1
 imbalanced-learn==0.10.1
 accelerate==0.20.1
 wandb==0.15.5
+flask==2.2.3
