@@ -16,17 +16,46 @@ def load_model():
         import torch
         from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
         
-        if not os.path.exists('data.pkl'):
-            raise FileNotFoundError('data.pkl missing')
-            
-        logger.info("Loading model with torch.load...")
-        checkpoint = torch.load('data.pkl', map_location='cpu')
+        logger.info("Starting model load...")
         
+        # CHECK if data.pkl exists
+        if not os.path.exists('data.pkl'):
+            logger.warning("data.pkl NOT FOUND - Using demo mode")
+            return False
+        
+        # TRY torch.load with different methods
+        checkpoint = None
+        methods = [
+            lambda: torch.load('data.pkl', map_location='cpu', weights_only=False),
+            lambda: torch.load('data.pkl', map_location='cpu', weights_only=True),
+            lambda: torch.load('data.pkl', map_location='cpu')
+        ]
+        
+        for i, method in enumerate(methods):
+            try:
+                logger.info(f"Trying method {i+1}...")
+                checkpoint = method()
+                logger.info(f"SUCCESS method {i+1}")
+                break
+            except Exception as e:
+                logger.warning(f"Method {i+1} failed: {e}")
+                continue
+        
+        if checkpoint is None:
+            logger.error("ALL torch.load methods failed")
+            return False
+        
+        # Extract model weights
         if isinstance(checkpoint, dict):
-            model_state = checkpoint.get('model_state_dict') or checkpoint.get('state_dict') or checkpoint
+            model_state = checkpoint.get('model_state_dict') or checkpoint.get('state_dict') or checkpoint.get('model') or checkpoint
         else:
             model_state = checkpoint
         
+        if not isinstance(model_state, dict):
+            logger.error("No valid state_dict found")
+            return False
+        
+        # Load model
         model = DistilBertForSequenceClassification.from_pretrained(
             'distilbert-base-uncased', num_labels=6
         )
@@ -35,15 +64,15 @@ def load_model():
         model.eval()
         
         tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-        logger.info("✅ Model loaded successfully")
+        logger.info("✅ REAL MODEL LOADED SUCCESSFULLY")
+        return True
         
     except Exception as e:
-        logger.error(f"Model load failed: {e}")
-        raise
+        logger.error(f"Model load FAILED: {e}")
+        return False
 
-# Load ONCE at startup
-with app.app_context():
-    load_model()
+# Try to load model at startup
+model_loaded = load_model()
 
 @app.route('/')
 def home():
@@ -53,22 +82,45 @@ def home():
 def health():
     return jsonify({
         'status': 'running',
-        'model_loaded': model is not None
+        'model_loaded': model_loaded,
+        'data_exists': os.path.exists('data.pkl')
     })
 
 @app.route('/predict', methods=['POST'])
 def predict():
     global model, tokenizer
+    
     try:
-        text = request.json.get('text', '').strip() if request.is_json else request.form.get('text', '').strip()
+        # Get text
+        if request.is_json:
+            text = request.json.get('text', '').strip()
+        else:
+            text = request.form.get('text', '').strip()
+            
         if not text:
             return jsonify({'error': 'No text provided'})
 
-        import torch
+        # DEMO MODE if no model
+        if not model_loaded:
+            text_lower = text.lower()
+            if any(word in text_lower for word in ['happy', 'great', 'love', 'excited', 'wonderful']):
+                emotion = 'joy'
+            elif any(word in text_lower for word in ['sad', 'depressed', 'cry', 'hurt']):
+                emotion = 'sad'
+            elif any(word in text_lower for word in ['angry', 'hate', 'mad', 'furious']):
+                emotion = 'anger'
+            elif any(word in text_lower for word in ['afraid', 'scared', 'fear', 'worried']):
+                emotion = 'fear'
+            else:
+                emotion = 'surprise'
+            return jsonify({'emotion': emotion, 'demo_mode': True})
+
+        # REAL MODEL PREDICTION
         inputs = tokenizer(
             text, return_tensors='pt', truncation=True, padding=True, max_length=128
         )
         
+        import torch
         with torch.no_grad():
             outputs = model(**inputs)
             prediction = torch.argmax(outputs.logits, dim=-1).item()
