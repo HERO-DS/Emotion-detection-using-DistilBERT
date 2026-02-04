@@ -6,7 +6,6 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Lazy load heavy ML imports
 model = None
 tokenizer = None
 emotion_label_mapping = {0: 'anger', 1: 'fear', 2: 'joy', 3: 'love', 4: 'sad', 5: 'surprise'}
@@ -20,13 +19,13 @@ def load_model():
         if not os.path.exists('data.pkl'):
             raise FileNotFoundError('data.pkl missing')
             
-        logger.info("Loading model...")
-        import pickle
-        with open('data.pkl', 'rb') as f:
-            data = pickle.load(f)
+        logger.info("Loading model with torch.load...")
+        checkpoint = torch.load('data.pkl', map_location='cpu')
         
-        # Handle your pickle structure
-        model_state = data.get('model') if isinstance(data, dict) else data
+        if isinstance(checkpoint, dict):
+            model_state = checkpoint.get('model_state_dict') or checkpoint.get('state_dict') or checkpoint
+        else:
+            model_state = checkpoint
         
         model = DistilBertForSequenceClassification.from_pretrained(
             'distilbert-base-uncased', num_labels=6
@@ -36,17 +35,16 @@ def load_model():
         model.eval()
         
         tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-        logger.info("✅ Model loaded")
+        logger.info("✅ Model loaded successfully")
         
     except Exception as e:
         logger.error(f"Model load failed: {e}")
         raise
 
-# Load model at startup
+# Load ONCE at startup
 with app.app_context():
     load_model()
 
-# Your routes remain exactly the same...
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -66,11 +64,11 @@ def predict():
         if not text:
             return jsonify({'error': 'No text provided'})
 
+        import torch
         inputs = tokenizer(
             text, return_tensors='pt', truncation=True, padding=True, max_length=128
         )
         
-        import torch
         with torch.no_grad():
             outputs = model(**inputs)
             prediction = torch.argmax(outputs.logits, dim=-1).item()
