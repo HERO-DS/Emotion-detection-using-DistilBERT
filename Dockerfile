@@ -2,22 +2,25 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY . .
-
-# Install system dependencies FIRST
+# Install system dependencies FIRST (GCC needed for transformers)
 RUN apt-get update && apt-get install -y \
     gcc g++ libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Install PyTorch CPU FIRST (before other deps)
+COPY . .
+
+# CRITICAL: Install PyTorch FIRST with compatible CPU version
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir torch==1.12.1+cpu torchvision==0.13.1+cpu \
+    pip install --no-cache-dir torch==2.0.1+cpu torchvision==0.15.2+cpu \
     --index-url https://download.pytorch.org/whl/cpu
 
-# Install YOUR FULL requirements.txt
+# Install ALL other dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Fix Gunicorn worker for PyTorch compatibility
+ENV GUNICORN_CMD_ARGS="--workers=1 --threads=2 --worker-class=gthread --timeout=180 --preload"
 
 EXPOSE 8080
 
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8080", "--timeout", "180", "app:app"]
+CMD ["gunicorn", "app:app"]
