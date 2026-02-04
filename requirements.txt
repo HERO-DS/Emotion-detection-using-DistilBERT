@@ -10,12 +10,11 @@ nltk==3.8.1
 spacy==3.5.2
 gensim==4.3.0
 torch==1.12.1
-tensorflow==2.10.0
 transformers==4.21.1
 imbalanced-learn==0.10.1
 accelerate==0.20.1
 wandb==0.15.5
-setuptools>=65.5.0
+setuptools>=42
 wheel
 werkzeug==2.0.3
 protobuf==3.19.6
