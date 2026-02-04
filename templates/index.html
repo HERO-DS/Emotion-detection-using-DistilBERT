@@ -11,8 +11,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
         }
         .container {
             text-align: center;
@@ -27,28 +28,36 @@
             color: #4CAF50;
             margin-bottom: 20px;
         }
-        form textarea {
+        textarea {
             width: 100%;
             border: 1px solid #ddd;
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 20px;
-            resize: none;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+            font-family: inherit;
         }
         button {
             background-color: #4CAF50;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 30px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
         }
         button:hover {
             background-color: #45a049;
         }
-        h2 {
+        .emotion {
             margin-top: 20px;
-            color: #555;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -56,11 +65,14 @@
     <div class="container">
         <h1>Emotion Predictor</h1>
         <form action="/predict" method="post">
-            <textarea name="text" rows="4" cols="50" placeholder="Enter your text here"></textarea><br>
+            <textarea name="text" rows="4" cols="50" placeholder="Enter text here...">{{ request.form.text if request.form else '' }}</textarea><br>
             <button type="submit">Predict</button>
         </form>
+        
         {% if prediction %}
-        <h2>Predicted Emotion: {{ prediction }}</h2>
+        <div class="emotion">
+            {{ prediction }}
+        </div>
         {% endif %}
     </div>
 </body>
