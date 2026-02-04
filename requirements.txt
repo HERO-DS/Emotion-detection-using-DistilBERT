@@ -10,6 +10,7 @@ nltk==3.8.1
 spacy==3.5.2
 gensim==4.3.0
 torch==1.12.1
+torchvision==0.13.1
 transformers==4.21.1
 imbalanced-learn==0.10.1
 accelerate==0.20.1
