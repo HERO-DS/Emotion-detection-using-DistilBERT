@@ -1,19 +1,18 @@
-FROM python:3.10-slim
+# Start from an official PyTorch image
+FROM pytorch/pytorch:1.12.1-cuda11.3-cudnn8-runtime
 
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy current directory contents into the container at /app
+# Copy the current directory contents into the container at /app
 COPY . .
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Make port 5000 available to the world outside this container
-EXPOSE 5000
+# Expose port 8080, as it's standard for cloud deployments like Render
+EXPOSE 8080
 
-# Define environment variable
-ENV NAME World
-
-# Run app.py when the container launches
-CMD ["gunicorn", "app:app"]
+# Run app.py using Gunicorn
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
