@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 import torch
 from transformers import DistilBertTokenizer
 import spacy
@@ -22,12 +22,14 @@ tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 
 # --- 3. Preprocessing Functions (Must be identical to training) ---
 
+# Load NLTK resources
 try:
     nltk.data.find('corpora/stopwords')
 except nltk.downloader.DownloadError:
     nltk.download('stopwords', quiet=True)
 english_stop_words = set(nltk.corpus.stopwords.words('english'))
 
+# Load spaCy model
 try:
     nlp = spacy.load('en_core_web_sm')
 except OSError:
@@ -37,7 +39,7 @@ except OSError:
 
 def remove_punctuation(text):
     if isinstance(text, str):
-        return re.sub(r'[\\W_]+', ' ', text)
+        return re.sub(r'[^\w\s]', ' ', text)
     else:
         return ''
 
@@ -75,7 +77,7 @@ emotion_label_mapping_inverse = {
 
 @app.route('/')
 def home():
-    # This assumes you have an 'index.html' file in a 'templates' folder
+    # Ensure 'index.html' is present in a 'templates' folder
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
@@ -111,6 +113,7 @@ def predict():
         predicted_emotion = emotion_label_mapping_inverse.get(prediction_idx, 'unknown')
 
         # Render the result in the HTML page
+        # Render the result in the HTML page
         return render_template('index.html', prediction=predicted_emotion)
 
     except Exception as e:
@@ -119,4 +122,4 @@ def predict():
 
 if __name__ == "__main__":
     # Ensure the app runs on the expected host and port
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
