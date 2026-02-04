@@ -1,14 +1,251 @@
 <!DOCTYPE html>
-<html>
-<head><title>Emotion Predictor</title></head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Predictor AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        textarea {
+            width: 100%;
+            height: 140px;
+            padding: 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 20px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        textarea::placeholder {
+            color: #999;
+        }
+        .predict-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .predict-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
+        }
+        .predict-btn:active {
+            transform: translateY(-1px);
+        }
+        .result {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        .emotion-anger { 
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+        .emotion-fear { 
+            background: linear-gradient(135deg, #4834d4, #686de0);
+            color: white;
+            box-shadow: 0 10px 30px rgba(72, 52, 212, 0.4);
+        }
+        .emotion-joy { 
+            background: linear-gradient(135deg, #feca57, #ff9ff3);
+            color: white;
+            box-shadow: 0 10px 30px rgba(254, 202, 87, 0.4);
+        }
+        .emotion-love { 
+            background: linear-gradient(135deg, #ff9ff3, #f368e0);
+            color: white;
+            box-shadow: 0 10px 30px rgba(255, 159, 243, 0.4);
+        }
+        .emotion-sad { 
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            box-shadow: 0 10px 30px rgba(116, 185, 255, 0.4);
+        }
+        .emotion-surprise { 
+            background: linear-gradient(135deg, #fdcb6e, #e17055);
+            color: white;
+            box-shadow: 0 10px 30px rgba(253, 203, 110, 0.4);
+        }
+        .result span {
+            position: relative;
+            z-index: 1;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            h1 { font-size: 2.2em; }
+            .result { font-size: 22px; }
+        }
+    </style>
+</head>
 <body>
-    <h1>Emotion Predictor</h1>
-    <form action="/predict" method="post">
-        <textarea name="text" rows="4" cols="50"></textarea><br>
-        <button>Predict</button>
-    </form>
-    {% if prediction %}
-    <h2>{{ prediction|upper }}</h2>
-    {% endif %}
+    <div class="container">
+        <h1>🎭 Emotion AI</h1>
+        <p class="subtitle">Type your text and discover the emotion</p>
+        
+        <form id="predictForm">
+            <div class="input-group">
+                <textarea 
+                    id="textInput"
+                    name="text" 
+                    placeholder="I feel so happy today..." 
+                    required
+                ></textarea>
+            </div>
+            <button type="submit" class="predict-btn">🔍 Predict Emotion</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing emotions...</p>
+        </div>
+
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const text = document.getElementById('textInput').value;
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Show loading
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                
+                if (data.emotion) {
+                    // Show emotion with animation
+                    result.textContent = data.emotion.toUpperCase();
+                    result.className = `result emotion-${data.emotion}`;
+                    result.style.display = 'flex';
+                    result.style.animation = 'none';
+                    setTimeout(() => {
+                        result.style.animation = 'pulse 0.6s ease-out';
+                    }, 10);
+                } else {
+                    result.textContent = 'Error occurred';
+                    result.className = 'result';
+                    result.style.display = 'flex';
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                result.textContent = 'Connection error';
+                result.className = 'result';
+                result.style.display = 'flex';
+            }
+        });
+    </script>
 </body>
 </html>
